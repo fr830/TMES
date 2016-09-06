@@ -83,7 +83,7 @@ namespace Backend
                 };
                 Result.Add(GanttData);
                 Index++;
-                startDurationTime = startDurationTime.AddDays(Convert.ToDouble(Row["Duration"])).AddDays(1)  ;
+                startDurationTime = startDurationTime.AddDays(Convert.ToDouble(Row["Duration"])).AddDays(1);
             }
             return Result;
         }
