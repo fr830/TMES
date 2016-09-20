@@ -61,28 +61,30 @@ namespace Backend
         {
             var Result = new List<GanttData>();
             var dbManager = DatabaseManager.GetInstance();
-            String Request = @"SELECT 
-                                        C, 
-                                        Duration
-                               FROM [1gb_x_t_mes].[dbo].[RootWorks] where id='netGraf' ";
+            String Request = @"SELECT     tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,  tn.NV
+                                FROM         tempPOSPRIMB AS tp 
+                                INNER JOIN
+                                TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
+                                WHERE     (tp.id = 'netgraf')
+                                order by Depth, P2NI ";
             var Rows = dbManager.SendRequest(Request);
-            var Index = 2;
+            //var Index = 2;
             var startDurationTime = order.StartTime.Date;
             order.StartTime = GetStartDateOrder(order);
             foreach (var Row in Rows)
             {
                 var GanttData = new GanttData()
                 {
-                    id = Index,
+                    id = Convert.ToInt32 (Row ["id_record"]),
                     text = Row["C"].ToString(),
                     start_date = startDurationTime.ToString(),
                     order = 10,
-                    duration = Convert.ToDouble(Row["Duration"]),
-                    parent = 1,
+                    duration = Convert.ToDouble(Row["NV"]),
+                    parent = Convert.ToInt32 (Row["Parent"]),
                     progress = 0.5
                 };
                 Result.Add(GanttData);
-                Index++;
+                //Index++;
                 startDurationTime = startDurationTime.AddDays(Convert.ToDouble(Row["Duration"])).AddDays(1);
             }
             return Result;
