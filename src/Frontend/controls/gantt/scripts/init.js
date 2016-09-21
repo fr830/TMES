@@ -1,20 +1,19 @@
 $(document).ready(function()
 {
-	var ContainerId = "gantt_here";
-	var SampleData = GetSampleData();
-	
-	gantt.init(ContainerId);
-	gantt.parse(SampleData);
-	
-	function EnableScroller()
-	{
-		// TODO : В плагин JQuery mousewheel вручную включил 'event capture', подумать над альтернативой
-		$('body').mousewheel(function(event, delta) 
-		{
-			gantt.scrollTo( gantt.getScrollState().x - delta * 100 );
-			event.preventDefault();
-		});
-	}
+    var ContainerId = "gantt_here";
+    var SampleData = GetSampleData();
+
+    gantt.init(ContainerId);
+
+//gantt.parse(SampleData);
+
+    function EnableScroller() {
+        // TODO : В плагин JQuery mousewheel вручную включил 'event capture', подумать над альтернативой
+        $('body').mousewheel(function(event, delta) {
+            gantt.scrollTo(gantt.getScrollState().x - delta * 100);
+            event.preventDefault();
+        });
+    }
 	
 	EnableScroller();
 })

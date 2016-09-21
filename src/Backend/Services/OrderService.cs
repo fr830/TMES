@@ -30,7 +30,7 @@ namespace Backend
             {
                 id = 1,
                 text = Order.Name,
-                order = 1, // не знаю что за параметр
+                //order = 1, // не знаю что за параметр
                 start_date = Order.StartTime.Date.ToString(), // Дата открытия заказа, от нее будет считаться все остальное
                 duration = OrderDuration,
                 open = true,
@@ -61,11 +61,12 @@ namespace Backend
         {
             var Result = new List<GanttData>();
             var dbManager = DatabaseManager.GetInstance();
-            String Request = @"SELECT     tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,  tn.NV
+            String Request = @"SELECT     tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV
                                 FROM         tempPOSPRIMB AS tp 
                                 INNER JOIN
                                 TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
                                 WHERE     (tp.id = 'netgraf')
+GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
                                 order by Depth, P2NI ";
             var Rows = dbManager.SendRequest(Request);
             //var Index = 2;
@@ -76,11 +77,12 @@ namespace Backend
                 var GanttData = new GanttData()
                 {
                     id = Convert.ToInt32 (Row ["id_record"]),
-                    text = Row["C"].ToString(),
+                    text = "("+ Row["C"].ToString() + ")" + Row["PICH"] ,
                     start_date = startDurationTime.ToString(),
-                    order = 10,
+                    //order = 10,
+                    open = true,
                     duration = Convert.ToDouble(Row["NV"]),
-                    parent = Convert.ToInt32 (Row["Parent"]),
+                    parent = Convert.ToInt32 (Row["Parent"].ToString().Replace("-1","0")),
                     progress = 0.5
                 };
                 Result.Add(GanttData);
