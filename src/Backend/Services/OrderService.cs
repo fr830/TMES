@@ -61,13 +61,15 @@ namespace Backend
         {
             var Result = new List<GanttData>();
             var dbManager = DatabaseManager.GetInstance();
-            String Request = @"SELECT     tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV
-                                FROM         tempPOSPRIMB AS tp 
-                                INNER JOIN
-                                TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
-                                WHERE     (tp.id = 'netgraf')
-GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
-                                order by Depth, P2NI ";
+            String Request = @"Select   case when (a.tip='К') then a.id_record else (ROW_NUMBER() over (order by a.id_record)) end as id_record, a.C, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent, a.NV 
+                                from
+                                (SELECT   tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV
+                                                                FROM         tempPOSPRIMB AS tp 
+                                                                INNER JOIN
+                                                                TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
+                                                                WHERE     (tp.id = 'netgraf')
+                                GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
+                                ) as a ";
             var Rows = dbManager.SendRequest(Request);
             //var Index = 2;
             var startDurationTime = order.StartTime.Date;
