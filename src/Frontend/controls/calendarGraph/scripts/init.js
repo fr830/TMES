@@ -2,26 +2,32 @@ var tE, tW, RequestedOrder;
 
 $(document).ready(function () {
 
-    tE = $('#ExploderTable').dataTable({
+    $('#ExploderTable thead tr:eq(1) th').each(function () {
+        var title = $('#ExploderTable thead tr:eq(0) th').eq($(this).index()).text();
+        $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+    });
+
+    tE = $('#ExploderTable').DataTable({
         "bPaginate": false,
         "bInfo": false,
-        "bFilter": false,
-        "columns":
-        [
-            {"data":"id_record"},
-            { "data": "Type" },
-            { "data": "Ind" },
-            { "data": "Denotation" },
-            { "data": "Amount" },
-            { "data": "Depth" }
-        ],
+        orderCellsTop: true,
         "columnDefs": [
-            {
-                "className": "hidden",
-                "targets": [0]
-            }
+             {
+                 "className": "hidden",
+                 "targets": [0]
+             }
         ]
     });
+
+    tE.columns().every(function (index) {
+        $('#ExploderTable thead tr:eq(1) th:eq(' + index + ') input').on('keyup change', function () {
+            tE.column($(this).parent().index() + ':visible')
+                .search(this.value)
+                .draw();
+        });
+    });
+
+    $('.dataTables_filter').hide();
 
     tW = $('#WorkDetaleTable').dataTable({
         "bPaginate": false,
@@ -79,16 +85,18 @@ function ValidateOrder(result)
    //alert(result.Name);
 }
 
-function ShowDetails(result)
-{
-    var data = JSON.stringify({data: result});
+function ShowDetails(result) {
+    var data = JSON.stringify({ data: result });
     gantt.parse(data);
 }
 
 function Exploder(result) {
-    tE.fnClearTable();
-    if (result.length !== 0)
-        tE.fnAddData(result);
+    tE.clear().draw();
+    if (result.length !== 0) {
+        for (var i = 0; i < result.length; i++) {
+            tE.row.add([result[i].id_record, result[i].Type, result[i].Ind, result[i].Denotation, result[i].Amount, result[i].Depth]).draw();
+        }
+    }
 }
 
 function WorkDetail(result) {
