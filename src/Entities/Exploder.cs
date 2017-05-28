@@ -24,4 +24,12 @@ namespace Entities
         public  string Duration { get; set; }
         public string Operation { get; set; }
     }
+
+    public class StandartWorks
+    {
+        public  string id { get; set; }
+        public string NameWork { get; set; }
+        public string Duration { get; set; }
+    }
+    
 }
