@@ -9,12 +9,12 @@
 <div class="NavigatorApplication">
     
     <div class="NavigatorInput">
-        ORDER: <input id="RequestedOrderInput"
+        Заказ: <input id="RequestedOrderInput"
                       name="Order"
                       type="text" />
     </div>
-    <div class="HLButtonStatic" onclick="Build()">BUILD</div>
-    <div class="HLButtonStatic" onclick="Options()">OPTIONS</div>
+    <div class="HLButtonStatic" onclick="Build()">Построить</div>
+    <div class="HLButtonStatic" onclick="Options()">Опции</div>
 
 </div>
 
@@ -23,14 +23,14 @@
 
 <div style="height: 30%; display: block; float: left; width: 100%">
   <div class="NavigatorExploder">
-   <span class="NavigatorHeader">EXPLODER</span>
+   <span class="NavigatorHeader">Обозреватель заказа</span>
   
       @Html.Partial("~/Views/Home/_Exploder.cshtml") 
   
   </div>
 
   <div class="NavigatorWorkDetail"  >
-    <span class="NavigatorHeader">WORK DETAIL</span>
+    <span class="NavigatorHeader">Детализация работ</span>
       @Html.Partial("~/Views/Home/_WorkDetail.cshtml") 
   
   </div>

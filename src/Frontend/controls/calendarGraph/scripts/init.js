@@ -74,7 +74,7 @@ $(document).ready(function () {
 function Build()
 {
     RequestedOrder = document.getElementById("RequestedOrderInput").value;
-    AjaxRequest("api/order/" + RequestedOrder, null, ValidateOrder);
+   // AjaxRequest("api/order/" + RequestedOrder, null, ValidateOrder);
     AjaxRequest("api/order/" + RequestedOrder + "/-1" + "/Exploder", null, Exploder);
     AjaxRequest("api/order/" + RequestedOrder + "/build", null, ShowDetails);
  

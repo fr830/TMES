@@ -1,50 +1,64 @@
-$(document).ready(function()
-{
+$(document).ready(function () {
     var ContainerId = "gantt_here";
-    var SampleData = GetSampleData();
 
+    gantt.config.duration_unit = "hour";
+    gantt.config.time_step = 7;
     gantt.init(ContainerId);
+    gantt.locale = {
+        date: {
+            month_full: ["Январь", "Февраль", "Март", "Апрель", "Мая", "Июнь", "Июль",
+            "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+            month_short: ["Янв", "Фев", "Март", "Апр", "Май", "Июнь", "Июль", "Авг", "Сент",
+            "Окт", "Нояб", "Дек"],
+            day_full: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница",
+            "Суббота"],
+            day_short: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
+        },
+        labels: {
+            new_task: "New",
+            icon_save: "Save",
+            icon_cancel: "Cansel",
+            icon_details: "Детали",
+            icon_edit: "Изменить",
+            icon_delete: "Удалить",
+            confirm_closing: "",//Your changes will be lost, are you sure ?
+            confirm_deleting: "Task will be deleted permanently, are you sure?",
 
-//gantt.parse(SampleData);
+            section_description: "Описание",
+            section_time: "Период",
+            column_duration: "Длительность",
+            column_start_date: "Нач. дата",
+            column_text: "Сборка",
+            /* link confirmation */
+
+            confirm_link_deleting: "Dependency will be deleted permanently, are you sure?",
+            link_from: "From",
+            link_to: "To",
+            link_start: "Start",
+            link_end: "End",
+
+            minutes: "Минуты",
+            hours: "Часы",
+            days: "Дни",
+            weeks: "Неделя",
+            months: "Месяц",
+            years: "Год"
+        }
+    };
 
     function EnableScroller() {
         // TODO : В плагин JQuery mousewheel вручную включил 'event capture', подумать над альтернативой
-        $('body').mousewheel(function(event, delta) {
+        $('body').mousewheel(function (event, delta) {
             gantt.scrollTo(gantt.getScrollState().x - delta * 100);
+            //gantt.scrollTo(gantt.getScrollState().y - delta * 100);
             event.preventDefault();
         });
     }
-	
-	EnableScroller();
-})
+
+    EnableScroller();
+});
 
 //@Depricated
-function GetSampleData()
-{
-	var Tasks = 
-	{
-	data: 
-	[
-		{
-			"id": 1, text: "Project #2", start_date: "01-04-2013", duration: 18, order: 10,
-			progress: 0.4, open: true
-		},
-		{
-			"id": 2, text: "Task #1", start_date: "02-04-2013", duration: 8, order: 10,
-			progress: 0.6, parent: 1
-		},
-		{
-			"id": 3, text: "Task #2", start_date: "11-04-2013", duration: 8, order: 20,
-			progress: 0.6, parent: 1
-		}
-	],
-	links: 
-	[
-		{ id: 1, source: 1, target: 2, type: "1" },
-		{ id: 2, source: 2, target: 3, type: "0" },
-		{ id: 3, source: 3, target: 4, type: "0" },
-		{ id: 4, source: 2, target: 5, type: "2" },
-	]
-	};
-	return Tasks;
+function GetSampleData() {
+
 }
