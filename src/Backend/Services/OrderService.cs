@@ -89,11 +89,13 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                     start_date = startDurationTime.ToString(),
                     open = false,
                     duration = Convert.ToDouble(item.Duration),
-                    progress = 1
+                    progress = 1,
+                    parent=0
                 };
                 startDurationTime = startDurationTime.AddDays(Convert.ToInt16(item.Duration) / 24);
                 Result.Add(ganttStandartWorks);
             }
+            var EndDateStandartWork = Convert.ToDateTime(Result.Last().start_date).AddDays(Result.Last().duration/24); 
 
             var countStandartWorks = Result.Count();
             foreach (var item in Rows)
@@ -106,7 +108,7 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                         text = "(" + item["C"] + ")" + item["PICH"],
                         start_date = startDurationTime.ToString(),
                         //order = 10,
-                        open = false,
+                        open = true,
                         duration = Convert.ToDouble(item["NV"]),
                         parent = Convert.ToInt32(item["Parent"].ToString().Replace("-1", "0")),
                         progress = 0.5
@@ -132,6 +134,10 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                     item.start_date = tempDate;
                 }
             }
+           
+
+          
+
 
             var prevPich = "";
             var actPich = "";
@@ -185,8 +191,28 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                     prevPich = item["PICH"].ToString();
                 }
             }
+ var startdateWork =
+                Result.Where(q => Convert.ToDateTime(q.start_date) > EndDateStandartWork)
+                    .OrderBy(w => Convert.ToDateTime(w.start_date)).First();
 
-            return Result;
+            var dif = (Convert.ToDateTime(startdateWork.start_date) - EndDateStandartWork).TotalHours;
+            var buy = new GanttData
+            {
+                start_date = EndDateStandartWork.ToString(),
+                id = 999999999,
+                duration = dif-10,
+                open = true,
+                text = "Закупка",
+                progress = 1,
+            };
+
+            var lst = (Result.Take(countStandartWorks));
+            var NewResult = new List<GanttData>();
+            NewResult.AddRange(lst);
+            NewResult.Add(buy);
+            NewResult.AddRange(Result.Skip(countStandartWorks+1));
+            
+            return  NewResult;
         }
 
         // Получить заказ по номеру
@@ -288,7 +314,7 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
         {
             var result = new List<StandartWorks>();
             var dbManager = new DatabaseManager();
-            var request = @"SELECT id,NameWork, Duration FROM [1gb_x_t_mes].dbo.StandartWorks";
+            var request = @"SELECT id,NameWork, Duration FROM [1gb_x_t_mes].dbo.StandartWorks order by id";
             var rows = dbManager.SendRequest(request);
 
             foreach (var item in rows)
@@ -302,6 +328,21 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                 result.Add(StandartWorks);
             }
             return result;
+        }
+
+        public void AddStandartWorks( string NameWork, string Duration)
+        {
+            var dbManager = new DatabaseManager();
+            var request = @" insert into [1gb_x_t_mes].dbo.StandartWorks (NameWork, Duration) values ('" + NameWork +
+                          "','" + Duration + "' )";
+            dbManager.SendRequest(request);
+        }
+
+        public void DeleteStandartWorks(int idWorks)
+        {
+            var dbManager= new DatabaseManager();
+            var request = " delete from [1gb_x_t_mes].dbo.StandartWorks  where id=" + idWorks;
+            dbManager.SendRequest(request);
         }
     }
 }

@@ -13,9 +13,11 @@ function AjaxRequest(url, data, success, error)
 			{	
 				success(result);
 			},
-			error: function (e1, e2, e3) 
-			{
-				success();
+			error: function (e1, e2, e3) {
+			    console.log(e1);
+			    console.log(e2);
+			    console.log(e3);
+
 			}
     	}
 	);	

@@ -1,4 +1,4 @@
-var tE, tW, RequestedOrder;
+var tE, tW, RequestedOrder, stWork;
 
 $(document).ready(function () {
 
@@ -69,20 +69,44 @@ $(document).ready(function () {
             }
         });
     });
+
+    stWork = $('#stWork').dataTable({
+        "bPaginate": false,
+        "bInfo": false,
+        "bFilter": false,
+        
+         "columnDefs": [
+             {
+                 "className": "hidden",
+                 "targets": [0]
+             }
+        ]
+    });
+
+    document.getElementById('addStandartWork').addEventListener('click', addStandartWork);
+
+    AjaxRequest("api/order/StandartWorks", null, AddStanartWork);
 });
 
-function Build()
-{
+
+
+function Build() {
     RequestedOrder = document.getElementById("RequestedOrderInput").value;
-   // AjaxRequest("api/order/" + RequestedOrder, null, ValidateOrder);
+    // AjaxRequest("api/order/" + RequestedOrder, null, ValidateOrder);
     AjaxRequest("api/order/" + RequestedOrder + "/-1" + "/Exploder", null, Exploder);
     AjaxRequest("api/order/" + RequestedOrder + "/build", null, ShowDetails);
- 
+
 }
 
-function ValidateOrder(result)
-{
-   //alert(result.Name);
+function Options() {
+    $("#OptionsDialog").dialog({
+        width: 500,
+        // height: auto,
+        modal: true
+    });
+}
+function ValidateOrder(result) {
+    //alert(result.Name);
 }
 
 function ShowDetails(result) {
@@ -103,4 +127,43 @@ function WorkDetail(result) {
     tW.fnClearTable();
     if (result.length !== 0)
         tW.fnAddData(result);
+}
+
+function AddStanartWork(result) {
+
+     stWork.fnClearTable();
+    if (result.length !== 0) {
+        for (var i = 0; i < result.length; i++) {
+           // console.log(result[i]);
+
+            stWork.fnAddData([result[i].id, "<span onclick='DeleteStWork(" + result[i].id + ")' >Delete</span>", result[i].NameWork, result[i].Duration]);
+        }
+    }
+        
+        
+        // stWork.fnAddData(result);
+}
+
+function addStandartWork() {
+    var naim = $("#stWorkNaim").val();
+    var duration = $("#stWorkDuration").val();
+    var match = duration.match(/^[0-9]+$/);
+    console.log(match);
+    if (naim !== "" && duration !== "" && Array.isArray(match) === true) {
+
+        AjaxRequest("api/order/" + naim + "/" + duration + "/AddStandartWorks", null, function() {
+            AjaxRequest("api/order/StandartWorks", null, AddStanartWork); 
+        });
+
+    } else {
+        alert("The data is not valid");
+    }
+}
+
+function DeleteStWork(id) {
+    if (confirm("Delete?")) {
+        AjaxRequest("api/order/" + id + "/DeleteStandartWorks", null, function() {
+            AjaxRequest("api/order/StandartWorks", null, AddStanartWork);
+        });
+    }
 }

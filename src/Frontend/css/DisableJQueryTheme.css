@@ -61,3 +61,12 @@
    font-weight: 100 !important;
    color: white !important;
 }
+ .ui-widget-header {
+     background: black !important
+ }
+ .ui-widget-content {
+     color: white !important
+ }
+ .ui-dialog-titlebar-close {
+     background-color: #AdAdAd !important
+ }
