@@ -2,6 +2,7 @@ $(document).ready(function () {
     var ContainerId = "gantt_here";
 
     gantt.config.duration_unit = "hour";
+    gantt.config.grid_width = 470;
     gantt.config.time_step = 7;
     gantt.init(ContainerId);
     gantt.locale = {

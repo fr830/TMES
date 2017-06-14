@@ -91,10 +91,16 @@ $(document).ready(function () {
 
 
 function Build() {
+    var resultChecked;
+    if (document.getElementById('checkBoxStandartWorks').checked === true)
+        resultChecked = 1;
+    else
+        resultChecked = 0;
+
     RequestedOrder = document.getElementById("RequestedOrderInput").value;
     // AjaxRequest("api/order/" + RequestedOrder, null, ValidateOrder);
     AjaxRequest("api/order/" + RequestedOrder + "/-1" + "/Exploder", null, Exploder);
-    AjaxRequest("api/order/" + RequestedOrder + "/build", null, ShowDetails);
+    AjaxRequest("api/order/" + RequestedOrder + "/" + resultChecked + "/build", null, ShowDetails);
 
 }
 
@@ -115,6 +121,7 @@ function ShowDetails(result) {
 }
 
 function Exploder(result) {
+    //console.log(result);
     tE.clear().draw();
     if (result.length !== 0) {
         for (var i = 0; i < result.length; i++) {
@@ -131,17 +138,12 @@ function WorkDetail(result) {
 
 function AddStanartWork(result) {
 
-     stWork.fnClearTable();
+    stWork.fnClearTable();
     if (result.length !== 0) {
         for (var i = 0; i < result.length; i++) {
-           // console.log(result[i]);
-
             stWork.fnAddData([result[i].id, "<span onclick='DeleteStWork(" + result[i].id + ")' >Delete</span>", result[i].NameWork, result[i].Duration]);
         }
     }
-        
-        
-        // stWork.fnAddData(result);
 }
 
 function addStandartWork() {

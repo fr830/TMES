@@ -7,7 +7,7 @@ namespace Backend
 {
     public class OrderService
     {
-        public IList<GanttData> GetDetails(Order Order)
+        public IList<GanttData> GetDetails(Order Order, int stWrk)
         {
             var Result = new List<GanttData>();
             var RootWorks = new List<GanttData>();
@@ -37,11 +37,11 @@ namespace Backend
                 open = true,
                 progress = 0
             };
-            Result.Add(Root);
+          //  Result.Add(Root);
 
             ExplodeOrder(Order);
 
-            RootWorks = GetRootWorks(Order);
+            RootWorks = GetRootWorks(Order, stWrk);
             Result.AddRange(RootWorks);
 
             return Result;
@@ -58,7 +58,7 @@ namespace Backend
         }
 
         // Получить из базы корневые работы в виде: "Цех:Трудоемкость"
-        public List<GanttData> GetRootWorks(Order order)
+        public List<GanttData> GetRootWorks(Order order,int stWork)
         {
             var Result = new List<GanttData>();
             var dbManager = DatabaseManager.GetInstance();
@@ -205,13 +205,27 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                 text = "Закупка",
                 progress = 1,
             };
-
-            var lst = (Result.Take(countStandartWorks));
             var NewResult = new List<GanttData>();
-            NewResult.AddRange(lst);
+
+            if (stWork == 1)
+            {
+               // var lst = (Result.Take(countStandartWorks));
+                NewResult.AddRange(Result.Skip(countStandartWorks));
+            }
+            else if(stWork==0)
+            {
+                var lst = (Result.Take(countStandartWorks));
+                NewResult = new List<GanttData>();
+                NewResult.AddRange(lst);
+                NewResult.Add(buy);
+                NewResult.AddRange(Result.Skip(countStandartWorks + 1));
+            }
+           
+           /*
+           
             NewResult.Add(buy);
             NewResult.AddRange(Result.Skip(countStandartWorks+1));
-            
+            */
             return  NewResult;
         }
 

@@ -34,13 +34,13 @@ namespace Launcher.Controllers
             }
         }
 
-        [HttpGet("{id}/build")]
+        [HttpGet("{id}/{prod}/build")]
         //:: Provide full data set for gantt-controll to build diagramm 'by division'
-        public IList<GanttData> GetDetails(int Id)
+        public IList<GanttData> GetDetails(int Id, int prod)
         {
             var Result = new List<GanttData>();
             var Order = this.Get(Id);
-            Result = Service.GetDetails(Order) as List<GanttData>;
+            Result = Service.GetDetails(Order,prod) as List<GanttData>;
 
             return Result;
         }
