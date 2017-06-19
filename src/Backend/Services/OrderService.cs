@@ -29,7 +29,7 @@ namespace Backend
             Order.Name = Row[0]["NaimZak"].ToString();
             var Root = new GanttData()
             {
-                id = 1,
+                id = 78956128,
                 text = Order.Name,
                 //order = 1, // не знаю что за параметр
                 start_date = Order.StartTime.Date.ToString(), // Дата открытия заказа, от нее будет считаться все остальное
@@ -37,13 +37,19 @@ namespace Backend
                 open = true,
                 progress = 0
             };
-          //  Result.Add(Root);
+
 
             ExplodeOrder(Order);
 
             RootWorks = GetRootWorks(Order, stWrk);
-            Result.AddRange(RootWorks);
+            var startdate = RootWorks.OrderBy(q => Convert.ToDateTime(q.start_date));
+            var stdate = Convert.ToDateTime(startdate.First().start_date);
 
+            Root.start_date = stdate.ToString();
+            var enddate = Convert.ToDateTime(startdate.Last().start_date);
+            Root.duration = (enddate - stdate).TotalHours + startdate.Last().duration;
+            Result.Add(Root);
+            Result.AddRange(RootWorks);
             return Result;
         }
 
@@ -58,20 +64,56 @@ namespace Backend
         }
 
         // Получить из базы корневые работы в виде: "Цех:Трудоемкость"
-        public List<GanttData> GetRootWorks(Order order,int stWork)
+        public List<GanttData> GetRootWorks(Order order, int stWork)
         {
             var Result = new List<GanttData>();
             var dbManager = DatabaseManager.GetInstance();
-            String Request = @"Select   case when (a.tip='Б') then a.id_record else (ROW_NUMBER() over (order by a.id_record)) end as id_record, a.C, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent,   CASE WHEN a.NV>8 THEN (nv/8)*24 ELSE a.NV END NV ,Depth
+            /* String Request = @"Select   case when (a.tip='Б') then a.id_record else (ROW_NUMBER() over (order by a.id_record)) end as id_record, a.C, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent,   CASE WHEN a.NV>8 THEN (nv/8)*24 ELSE a.NV END NV ,Depth
+                                 from
+                                 (SELECT   tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV,Depth
+                                                                 FROM         tempPOSPRIMB AS tp 
+                                                                 INNER JOIN
+                                                                 TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
+                                                                 WHERE     (tp.id = 'netgraf')  AND ksz>0
+                                 GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
+                                    ) as a 
+ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н' THEN 3 WHEN TIP='П' THEN 4 ELSE 5 end,pich,c desc";
+            */
+            /* string Request = @"Select   case when (a.tip='Б') then a.id_record else (ROW_NUMBER() over (order by a.id_record)) end as id_record, a.C, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent, sum(  CASE WHEN a.NV>8 THEN (nv/8)*24 ELSE a.NV END) NV ,Depth
+                                 from
+                                 (                              
+                                 SELECT top 100 percent  tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV,Depth,min(f) as f
+                                                                 FROM         tempPOSPRIMB AS tp 
+                                                                 INNER JOIN
+                                                                 TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
+                                                                 WHERE     (tp.id = 'netgraf')  AND ksz>0
+
+                                 GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
+                                   order by f desc
+                                   ) as a 
+                                    group by a.id_record, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent,a.c,a.Depth,f
+ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н' THEN 3 WHEN TIP='П' THEN 4 ELSE 5 end,pich, f desc";*/
+            String Request = @"select   case when (a.tip='Б') then a.id_record else (ROW_NUMBER() over (order by a.id_record)) end as id_record, a.C, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent, sum(  CASE WHEN a.NV>8 THEN (nv/8)*24 ELSE a.NV END) NV ,Depth
                                 from
-                                (SELECT   tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV,Depth
+                                (  SELECT   tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV,Depth,0 nop
                                                                 FROM         tempPOSPRIMB AS tp 
                                                                 INNER JOIN
                                                                 TEXNORM AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
-                                                                WHERE     (tp.id = 'netgraf')  AND ksz>0
+                                                                WHERE     (tp.id = 'netgraf')  AND ksz>0 and tp.TIP='Б'
+                                                                
                                 GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth
-                                   ) as a 
-order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н' THEN 3 WHEN TIP='П' THEN 4 ELSE 5 end,pich,c";
+                                  union ALL
+                                     SELECT   tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,   SUM( tn.NV) NV,Depth ,nop
+                                                                FROM         tempPOSPRIMB AS tp 
+                                                                INNER JOIN
+                                                                TEXNORM_SC AS tn ON tp.TIP = tn.TIP AND tp.IND1 = tn.IND AND tp.PICH = tn.PICH
+                                                                WHERE     (tp.id = 'netgraf')  AND ksz>0 and tp.TIP='Д' --and tp.PICH='8188179'
+                                                               
+                                GROUP BY tp.id_record, tn.C, tp.TIP, tp.IND1, tp.PICH, tp.IND2, tp.P2NI, tp.Z, tp.id, tp.Parent,Depth,nop
+                                  ) as a 
+                                   group by a.id_record, a.TIP, a.IND1, a.PICH, a.IND2, a.P2NI, a.Z, a.id, a.Parent,a.c,a.Depth,nop
+order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н' THEN 3 WHEN TIP='П' THEN 4 ELSE 5 end,pich,Parent,nop desc";
+
             var Rows = dbManager.SendRequest(Request);
             //var Index = 2;
             var startDurationTime = order.StartTime.Date;
@@ -90,12 +132,12 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                     open = false,
                     duration = Convert.ToDouble(item.Duration),
                     progress = 1,
-                    parent=0
+                    parent = 0
                 };
                 startDurationTime = startDurationTime.AddDays(Convert.ToInt16(item.Duration) / 24);
                 Result.Add(ganttStandartWorks);
             }
-            var EndDateStandartWork = Convert.ToDateTime(Result.Last().start_date).AddDays(Result.Last().duration/24); 
+            var EndDateStandartWork = Convert.ToDateTime(Result.Last().start_date).AddDays(Result.Last().duration / 24);
 
             var countStandartWorks = Result.Count();
             foreach (var item in Rows)
@@ -129,24 +171,25 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
                     var dt = pos.ToList()[0].start_date;
                     var nv = Math.Ceiling(Convert.ToDecimal(item.duration) / 24);
 
-                    var tempDate = ((Convert.ToDateTime(dt).AddDays(-1)).AddDays(Convert.ToInt32(nv) * -1)).ToString();
+                    var tempDate = ((Convert.ToDateTime(dt)/*.AddDays(-1)*/).AddDays(Convert.ToInt32(nv) * -1)).ToString();
 
                     item.start_date = tempDate;
                 }
             }
-           
-
-          
-
 
             var prevPich = "";
             var actPich = "";
+            var prevC = "";
+            var actC = "";
             DateTime lastdate = DateTime.Now;
+            var controlDate = "";
+            var controlDuration = "";
             foreach (var item in Rows)
             {
                 if (item["TIP"].ToString() == "Д")
                 {
                     actPich = item["PICH"].ToString();
+                    actC = item["C"].ToString();
                     var parent = Convert.ToInt64(item["Parent"]);
                     var nv = Math.Ceiling(Convert.ToDouble(item["NV"]));
                     var qwe = nv / 8;
@@ -154,79 +197,92 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
 
                     var date = (Convert.ToDateTime(((Result.Where(w => w.id == parent).Select(q => q.start_date)).OrderBy(q => q).Last()))).AddDays(-n);
 
-                    var GanttData = new GanttData()
-                    {
-                        id = Convert.ToInt32(item["id_record"]),
-                        text = "(" + item["C"] + ")" + item["PICH"],
-                        start_date = date.ToString(),
-                        //order = 10,
-                        open = false,
-                        duration = Convert.ToDouble(item["NV"]),
-                        parent = Convert.ToInt32(item["Parent"].ToString().Replace("-1", "0")),
-                        progress = 0.5
-                    };
-                    Result.Add(GanttData);
-
                     if (actPich == prevPich)
                     {
                         if (Result.Count() > countStandartWorks + 1)
                         {
-                            var nDate = date.AddDays(-1);
-                            date = nDate;
-
-                            if (lastdate == date)
+                            if (actC != prevC)
                             {
-                                nDate = date.AddDays(-1);
-                                date = nDate;
-                                lastdate = date;
+                                controlDate = Convert.ToDateTime(Result.Last().start_date).AddDays(-1).ToString();
+                                controlDuration = "8";
                             }
-
-                            Result.Last().start_date = date.ToString();
-
-                            lastdate = date;
-                            var index = Result.Count() - 2;
-                            Result[index].duration = 8;
                         }
                     }
+                    else
+                    {
+                        controlDate = date.ToString();
+                        controlDuration = item["NV"].ToString();
+                    }
+                    var GanttData = new GanttData()
+                    {
+                        id = Convert.ToInt32(item["id_record"]),
+                        text = "(" + item["C"] + ")" + item["PICH"],
+                        start_date = controlDate,
+                        //order = 10,
+                        open = false,
+                       // duration = Convert.ToDouble(controlDuration),
+                        duration = 8,
+                        parent = Convert.ToInt32(item["Parent"].ToString().Replace("-1", "0")),
+                        progress = 0.5
+                    };
+                    Result.Add(GanttData);
                     prevPich = item["PICH"].ToString();
+                    prevC = item["C"].ToString();
                 }
             }
- var startdateWork =
-                Result.Where(q => Convert.ToDateTime(q.start_date) > EndDateStandartWork)
-                    .OrderBy(w => Convert.ToDateTime(w.start_date)).First();
+
+            var startdateWork =
+                           Result.Where(q => Convert.ToDateTime(q.start_date) > EndDateStandartWork)
+                               .OrderBy(w => Convert.ToDateTime(w.start_date)).First();
 
             var dif = (Convert.ToDateTime(startdateWork.start_date) - EndDateStandartWork).TotalHours;
             var buy = new GanttData
             {
                 start_date = EndDateStandartWork.ToString(),
                 id = 999999999,
-                duration = dif-10,
+                duration = dif - 10,
                 open = true,
                 text = "Закупка",
                 progress = 1,
             };
             var NewResult = new List<GanttData>();
+            var sortList = Result.OrderBy(q => Convert.ToDateTime(q.start_date));
+            var startdate = Convert.ToDateTime(sortList.First().start_date);
+            var lastdateL = Convert.ToDateTime(sortList.Last().start_date);
+            var fDuration = (lastdateL - startdate).TotalHours + sortList.Last().duration;
+            var obj = new GanttData
+            {
+                start_date = startdate.ToString(),
+                duration = fDuration,
+                id = 888888888,
+                parent = 77777777,
+                text = "Изделие"
 
+            };
             if (stWork == 1)
             {
-               // var lst = (Result.Take(countStandartWorks));
+
+
+                // NewResult.Add(obj);
+                // var lst = (Result.Take(countStandartWorks));
                 NewResult.AddRange(Result.Skip(countStandartWorks));
             }
-            else if(stWork==0)
+            else if (stWork == 0)
             {
                 var lst = (Result.Take(countStandartWorks));
                 NewResult = new List<GanttData>();
+                //  NewResult.Add(obj);
                 NewResult.AddRange(lst);
                 NewResult.Add(buy);
                 NewResult.AddRange(Result.Skip(countStandartWorks + 1));
             }
-           
-           /*
-           
-            NewResult.Add(buy);
-            NewResult.AddRange(Result.Skip(countStandartWorks+1));
-            */
-            return  NewResult;
+
+            /*
+
+             NewResult.Add(buy);
+             NewResult.AddRange(Result.Skip(countStandartWorks+1));
+             */
+            return NewResult;
         }
 
         // Получить заказ по номеру
@@ -344,7 +400,7 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
             return result;
         }
 
-        public void AddStandartWorks( string NameWork, string Duration)
+        public void AddStandartWorks(string NameWork, string Duration)
         {
             var dbManager = new DatabaseManager();
             var request = @" insert into [1gb_x_t_mes].dbo.StandartWorks (NameWork, Duration) values ('" + NameWork +
@@ -354,7 +410,7 @@ order by depth DESC, CASE WHEN TIP='Б' THEN 1 WHEN TIP='Д' THEN 2 WHEN TIP='Н
 
         public void DeleteStandartWorks(int idWorks)
         {
-            var dbManager= new DatabaseManager();
+            var dbManager = new DatabaseManager();
             var request = " delete from [1gb_x_t_mes].dbo.StandartWorks  where id=" + idWorks;
             dbManager.SendRequest(request);
         }

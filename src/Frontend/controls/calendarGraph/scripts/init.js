@@ -116,7 +116,9 @@ function ValidateOrder(result) {
 }
 
 function ShowDetails(result) {
+
     var data = JSON.stringify({ data: result });
+       gantt.clearAll();
     gantt.parse(data);
 }
 
@@ -128,12 +130,14 @@ function Exploder(result) {
             tE.row.add([result[i].id_record, result[i].Type, result[i].Ind, result[i].Denotation, result[i].Amount, result[i].Depth]).draw();
         }
     }
+    //var data = JSON.stringify({ data: result }); console.log(data);
 }
 
 function WorkDetail(result) {
     tW.fnClearTable();
     if (result.length !== 0)
         tW.fnAddData(result);
+   
 }
 
 function AddStanartWork(result) {
